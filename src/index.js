@@ -52,7 +52,7 @@ io.on('connection', (socket) => {
       const lines = data.split("\n");
       for (let line of lines) {
         if (line.length != 0) {
-          io.emit('chat message', line);
+          io.to(socket.id).emit('chat message', line);
         }
       }
     });
