@@ -4,8 +4,8 @@
     <title>Socket.IO chat</title>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      html { height: 100%; overflow: hidden; }
-      body { font: 13px Consolas, Helvetica, Arial; display: flex; flex-direction: column; height: 100%; overflow: hidden;}
+      html { height: 100%; }
+      body { font: 13px Consolas, Helvetica, Arial; display: flex; flex-direction: column; height: 100%; }
       .top { flex: 0 0 auto; }
       .middle { flex: 1 1 auto; overflow: scroll; }
       .bottom { flex: 0 0 auto; }
@@ -35,12 +35,6 @@
     <script>
         $(function () {
           var socket = io();
-          $('#formname').submit(function(e) {
-            console.log("formname function()")
-            e.preventDefault(); // prevents page reloading
-            socket.emit('send name', $('#name').val());
-            return false;
-          });
           $('#formmessage').submit(function(e) {
             console.log("formmessage function()")
             e.preventDefault(); // prevents page reloading
