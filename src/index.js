@@ -2,6 +2,11 @@ const app = require('express')();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 
+const fs = require("fs");
+
+const chatdata = "./data/chat-data.txt";
+const separator = "\n";
+
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
@@ -35,14 +40,46 @@ io.on('connection', (socket) => {
   log("[Client connect] socket.handshake.address                    : " +  socket.handshake.address);
   log("[Client connect] socket.request.connection.remoteAddress     : " +  socket.request.connection.remoteAddress);
   log("[Client connect] socket.request.connection._peername.address : " +  socket.request.connection._peername.address);
+
+  // 過去のチャットをリード
+  if (fs.existsSync(chatdata)) {
+    fs.readFile(chatdata, "utf8", (err, data) => {
+      if (err) {
+        throw err;
+      } else {
+        log("read file : " + chatdata);
+      }
+      const lines = data.split("\n");
+      for (let line of lines) {
+        if (line.length != 0) {
+          io.emit('chat message', line);
+        }
+      }
+    });
+  }
+
   socket.on('chat message', (msg) => {
     log("[Client chat message] socket.user : " +  socket.user);
     const chat = toJapanDateString() + " [IP]" + map[socket.user] + ": " + msg;
     log("[Client chat message] : " +  chat);
     io.emit('chat message', chat);
+
+    // serialize
+    fs.appendFile(chatdata, chat + separator, (err, data) => {
+      if (err) {
+        throw err;
+      } else {
+        log("write file : " + chatdata);
+      }
+    });
   });
-  socket.on('set username', (username) => {
-    socket.username = username;
+  socket.on('delete saved chat', (username) => {
+    log("[Delete saved chat] " + socket.user);
+    fs.unlink(chatdata, function (err) {
+      if (err) {
+          throw err;
+      }
+    });
   });
   socket.on("disconnect", (reason) => {
     log("[Client disconnect] socket.user : " +  socket.user);

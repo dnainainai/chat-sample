@@ -12,6 +12,7 @@
       .black { background: #000; padding: 3px; width: 100%; display:inline-flex; }
       form { display:inline-flex; }
       .top label { color: white; margin: 0.5%; }
+      .top button { width: 9%; background: rgb(255, 205, 130); border: none; padding: 10px; }
       #formmessage { width: 100%; }
       #formmessage input { border: 0; padding: 10px; width: 90%; margin-right: 0.5%; }
       #formmessage button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
@@ -21,7 +22,10 @@
     </style>
   </head>
   <body>
-    <div class="black top"><label>Name</label><input id="sendname" /></div>
+    <div class="black top">
+        <label>Name</label><input id="sendname" />
+        <button id="chatdelete">Delete saved chat</button>
+    </div>
     <div class="middle">
       <ul id="viewmessages"></ul>
     </div>
@@ -42,6 +46,11 @@
             $('#sendmessge').val('');
             return false;
           });
+          document.getElementById("chatdelete").addEventListener("click", () => {
+            console.log("chatdelete function()");
+            socket.emit('delete saved chat', "");
+          });
+
           socket.on('chat message', function(msg){
             $('#viewmessages').append($('<li>').text(msg));
           });
@@ -52,6 +61,17 @@
             console.log(err.data); // { content: "Please retry later" }
           });
         });
+
+        // local に名称をキャッシュする
+        const name = document.getElementById("sendname");
+        name.addEventListener("change", (event) => {
+          console.log("change: " + event.target.value);
+          localStorage.setItem("name", event.target.value);
+        });
+        if (localStorage.name != null) {
+          console.log("set name:" + localStorage.name);
+          name.value = localStorage.name;
+        }
       </script>
   </body>
 </html>

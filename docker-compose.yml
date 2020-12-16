@@ -5,3 +5,7 @@ services:
     build: .
     ports:
       - "3000:3000"
+    volumes:
+      - type: bind
+        source: ./data
+        target: /tmp/nodejs/data
