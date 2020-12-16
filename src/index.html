@@ -4,34 +4,58 @@
     <title>Socket.IO chat</title>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font: 13px Consolas, Helvetica, Arial; }
-      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; display:inline-flex; }
-      form label { color: white; margin: 0.5%; }
-      form input { border: 0; padding: 10px; width: 90%; margin-right: 0.5%; }
-      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      html { height: 100%; }
+      body { font: 13px Consolas, Helvetica, Arial; display: flex; flex-direction: column; height: 100%; }
+      .top { flex: 0 0 auto; }
+      .middle { flex: 1 0 auto; }
+      .bottom { flex: 0 0 auto; }
+      .black { background: #000; padding: 3px; width: 100%; display:inline-flex; }
+      form { display:inline-flex; }
+      .top label { color: white; margin: 0.5%; }
+      #formmessage { width: 100%; }
+      #formmessage input { border: 0; padding: 10px; width: 90%; margin-right: 0.5%; }
+      #formmessage button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
       #viewmessages { list-style-type: none; margin: 0; padding: 0; }
       #viewmessages li { padding: 5px 10px; }
       #viewmessages li:nth-child(odd) { background: #eee; }
     </style>
   </head>
   <body>
-    <ul id="viewmessages"></ul>
-    <form action="">
-      <label>Name</label><input id="name" /><label>Message</label><input id="sendmessge" autocomplete="off" /><button>Send</button>
-    </form>
+    <div class="black top"><label>Name</label><input id="sendname" /></div>
+    <div class="middle">
+      <ul id="viewmessages"></ul>
+    </div>
+    <div class="black bottom">
+      <form id="formmessage" action="">
+        <input id="sendmessge" autocomplete="off" /><button>Send</button>
+      </form>
+    </div>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script>
         $(function () {
           var socket = io();
-          $('form').submit(function(e){
+          $('#formname').submit(function(e) {
+            console.log("formname function()")
             e.preventDefault(); // prevents page reloading
-            socket.emit('chat message', $('#name').val() + ": " +  $('#sendmessge').val());
+            socket.emit('send name', $('#name').val());
+            return false;
+          });
+          $('#formmessage').submit(function(e) {
+            console.log("formmessage function()")
+            e.preventDefault(); // prevents page reloading
+            socket.emit('chat message', "[name]" + $('#sendname').val() + " [message] " +  $('#sendmessge').val());
             $('#sendmessge').val('');
             return false;
           });
           socket.on('chat message', function(msg){
             $('#viewmessages').append($('<li>').text(msg));
+          });
+          socket.on("connect_error", err => {
+            console.log("connect_error")
+            console.log(err instanceof Error); // true
+            console.log(err.message); // not authorized
+            console.log(err.data); // { content: "Please retry later" }
           });
         });
       </script>
