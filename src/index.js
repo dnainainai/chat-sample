@@ -7,6 +7,10 @@ app.get('/', (req, res) => {
 });
 
 io.on('connection', (socket) => {
+  console.log("Client connection. socket.id: " +  socket.id);
+  console.log("Client connection. socket.handshake.address: " +  socket.handshake.address);
+  console.log("Client connection. socket.request.connection.remoteAddress: " +  socket.request.connection.remoteAddress);
+  console.log("Client connection. socket.request.connection._peername.address: " +  socket.request.connection._peername.address);
   socket.on('chat message', (msg) => {
     io.emit('chat message', msg);
   });
