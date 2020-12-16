@@ -19,7 +19,7 @@ io.use(async (socket, next) => {
   const key = getKey(socket);
   const value = socket.handshake.address;
 
-  console.log("[Authenticate] Map key: " + key + ", value: " + value);
+  log("[Authenticate] Map key: " + key + ", value: " + value);
 
   map[key] = value;
   socket.user = key;
@@ -28,26 +28,39 @@ io.use(async (socket, next) => {
 });
 
 io.on('connection', (socket) => {
-  console.log("[Client connect] socket.user : " +  socket.user);
-  console.log("[Client connect] socket.id   : " +  socket.id);
-  console.log("[Client connect] socket.handshake.headers.host       : " + socket.handshake.headers.host);
-  console.log("[Client connect] socket.handshake.headers.connection : " + socket.handshake.headers.connection);
-  console.log("[Client connect] socket.handshake.address                    : " +  socket.handshake.address);
-  console.log("[Client connect] socket.request.connection.remoteAddress     : " +  socket.request.connection.remoteAddress);
-  console.log("[Client connect] socket.request.connection._peername.address : " +  socket.request.connection._peername.address);
+  log("[Client connect] socket.user : " +  socket.user);
+  log("[Client connect] socket.id   : " +  socket.id);
+  log("[Client connect] socket.handshake.headers.host       : " + socket.handshake.headers.host);
+  log("[Client connect] socket.handshake.headers.connection : " + socket.handshake.headers.connection);
+  log("[Client connect] socket.handshake.address                    : " +  socket.handshake.address);
+  log("[Client connect] socket.request.connection.remoteAddress     : " +  socket.request.connection.remoteAddress);
+  log("[Client connect] socket.request.connection._peername.address : " +  socket.request.connection._peername.address);
   socket.on('chat message', (msg) => {
-    console.log("[Client chat message] socket.user : " +  socket.user);
-    io.emit('chat message', "[IP]" + map[socket.user] + ": " + msg);
+    log("[Client chat message] socket.user : " +  socket.user);
+    const chat = toJapanDateString() + " [IP]" + map[socket.user] + ": " + msg;
+    log("[Client chat message] : " +  chat);
+    io.emit('chat message', chat);
   });
   socket.on('set username', (username) => {
     socket.username = username;
   });
   socket.on("disconnect", (reason) => {
-    console.log("[Client disconnect] socket.user : " +  socket.user);
+    log("[Client disconnect] socket.user : " +  socket.user);
     map.delete[socket.user];
   });
 });
 
+function toJapanDateString() {
+  const date = new Date();
+  date.setTime(date.getTime() + 1000 * 60 * 60 * 9);
+  return date.toLocaleString();
+}
+
 http.listen(3000, () => {
-  console.log('listening on *:3000');
+  log('listening on *:3000');
 });
+
+function log(message) {
+  console.log(toJapanDateString() + " " + message);
+  
+}
