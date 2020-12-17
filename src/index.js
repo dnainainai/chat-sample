@@ -58,9 +58,9 @@ io.on('connection', (socket) => {
     });
   }
 
-  socket.on('chat message', (msg) => {
-    log("[Client chat message] socket.user : " +  socket.user);
-    const chat = toJapanDateString() + " [IP]" + map[socket.user] + ": " + msg;
+  socket.on('chat message', (data) => {
+    log("[Client chat message] socket.user: " +  socket.user);
+    const chat = toJapanDateString() + " [IP]" + map[socket.user] + ": " + toMessage(data);
     log("[Client chat message] : " +  chat);
     io.emit('chat message', chat);
 
@@ -86,6 +86,10 @@ io.on('connection', (socket) => {
     map.delete[socket.user];
   });
 });
+
+function toMessage(chatjson) {
+  return "[name] " + chatjson.name + " [message] " + chatjson.message;
+}
 
 function toJapanDateString() {
   const date = new Date();

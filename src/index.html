@@ -42,7 +42,7 @@
           $('#formmessage').submit(function(e) {
             console.log("formmessage function()")
             e.preventDefault(); // prevents page reloading
-            socket.emit('chat message', "[name]" + $('#sendname').val() + " [message] " +  $('#sendmessge').val());
+            socket.emit('chat message', { name: $('#sendname').val(), message: $('#sendmessge').val() });
             $('#sendmessge').val('');
             return false;
           });
