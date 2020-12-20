@@ -10,6 +10,7 @@
       .middle { flex: 1 1 auto; overflow: scroll; }
       .bottom { flex: 0 0 auto; }
       .black { background: #000; padding: 3px; width: 100%; display:inline-flex; }
+      #latestchat { margin: 0.7%; }
       form { display:inline-flex; }
       .top label { color: white; margin: 0.5%; }
       .top button { width: 9%; background: rgb(255, 205, 130); border: none; padding: 10px; }
@@ -24,9 +25,10 @@
   <body>
     <div class="black top">
         <label>Name</label><input id="sendname" />
+        <input type="checkbox" id="latestchat" checked><label>最新のチャットを表示</label>
         <button id="chatdelete">Delete saved chat</button>
     </div>
-    <div class="middle">
+    <div class="middle" id="scroll">
       <ul id="viewmessages"></ul>
     </div>
     <div class="black bottom">
@@ -39,11 +41,13 @@
     <script>
         $(function () {
           var socket = io();
+          var selfChat = false; // 雑だが自身のチャットだけスクロールするため。
           $('#formmessage').submit(function(e) {
             console.log("formmessage function()")
             e.preventDefault(); // prevents page reloading
             socket.emit('chat message', { name: $('#sendname').val(), message: $('#sendmessge').val() });
             $('#sendmessge').val('');
+            selfChat = true;
             return false;
           });
           document.getElementById("chatdelete").addEventListener("click", () => {
@@ -53,6 +57,12 @@
 
           socket.on('chat message', function(msg){
             $('#viewmessages').append($('<li>').text(msg));
+            if (selfChat) {
+              scroll_bottom();
+              selfChat = false;
+            } else if (document.getElementById("latestchat").checked) {
+              scroll_bottom();
+            }
           });
           socket.on("connect_error", err => {
             console.log("connect_error")
@@ -71,6 +81,13 @@
         if (localStorage.name != null) {
           console.log("set name:" + localStorage.name);
           name.value = localStorage.name;
+        }
+
+        function scroll_bottom() {
+          console.log("scroll_bottom()");
+          const scroll = document.getElementById("scroll");
+          const bottom = scroll.scrollHeight - scroll.clientHeight;
+          scroll.scroll(0, bottom);
         }
       </script>
   </body>
