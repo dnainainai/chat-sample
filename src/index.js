@@ -98,10 +98,10 @@ function toJapanDateString() {
 }
 
 http.listen(3000, () => {
-  log('listening on *:3000');
+  log('listening on *: 3000');
+  log('Access * : http://localhost:3000/');
 });
 
 function log(message) {
   console.log(toJapanDateString() + " " + message);
-  
 }

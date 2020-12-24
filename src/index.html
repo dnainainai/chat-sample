@@ -1,94 +1,105 @@
-<!doctype html>
+<!doctype html style="height: 100hv;">
 <html>
   <head>
     <title>Socket.IO chat</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- BootStrap 4.5 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
     <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      html { height: 100%; }
-      body { font: 13px Consolas, Helvetica, Arial; display: flex; flex-direction: column; height: 100%; }
       .top { flex: 0 0 auto; }
-      .middle { flex: 1 1 auto; overflow: scroll; }
+      .middle { flex: 1 1 auto; overflow-y: scroll; }
       .bottom { flex: 0 0 auto; }
-      .black { background: #000; padding: 3px; width: 100%; display:inline-flex; }
-      #latestchat { margin: 0.7%; }
-      form { display:inline-flex; }
-      .top label { color: white; margin: 0.5%; }
-      .top button { width: 9%; background: rgb(255, 205, 130); border: none; padding: 10px; }
-      #formmessage { width: 100%; }
-      #formmessage input { border: 0; padding: 10px; width: 90%; margin-right: 0.5%; }
-      #formmessage button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
-      #viewmessages { list-style-type: none; margin: 0; padding: 0; }
-      #viewmessages li { padding: 5px 10px; }
-      #viewmessages li:nth-child(odd) { background: #eee; }
     </style>
   </head>
   <body>
-    <div class="black top">
-        <label>Name</label><input id="sendname" />
-        <input type="checkbox" id="latestchat" checked><label>最新のチャットを表示</label>
-        <button id="chatdelete">Delete saved chat</button>
-    </div>
-    <div class="middle" id="scroll">
-      <ul id="viewmessages"></ul>
-    </div>
-    <div class="black bottom">
-      <form id="formmessage" action="">
-        <input id="sendmessge" autocomplete="off" /><button>Send</button>
-      </form>
+    <div class="d-flex flex-column" style="height: 100%;">
+      <div class="top p-2 d-flex w-100">
+        <input id="sendname" class="flex-fill" placeholder="Input your name."/>
+        <div class="mr-2">
+          <input class="align-middle ml-2 mr-1" type="checkbox" id="latestchat" checked>
+          <label class="align-text-middle mb-0">最新チャット</label>
+        </div>
+        <div>
+          <button id="chatdelete" class="btn btn-danger">Delete saved chat</button>
+        </div>
+      </div>
+      <div class="middle" id="scroll">
+        <div id="viewmessages" class="list-group list-group-flush"></div>
+      </div>
+      <div class="bottom">
+        <form class="d-inline-flex w-100 mb-0" style="height: 3em;" id="formmessage" action="">
+          <input class="flex-fill" id="sendmessge" autocomplete="off" placeholder="Input chat text..." />
+          <button class="btn btn-primary">Send</button>
+        </form>
+      </div>
     </div>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script>
-        $(function () {
-          var socket = io();
-          var selfChat = false; // 雑だが自身のチャットだけスクロールするため。
-          $('#formmessage').submit(function(e) {
-            console.log("formmessage function()")
-            e.preventDefault(); // prevents page reloading
-            socket.emit('chat message', { name: $('#sendname').val(), message: $('#sendmessge').val() });
-            $('#sendmessge').val('');
-            selfChat = true;
-            return false;
-          });
-          document.getElementById("chatdelete").addEventListener("click", () => {
-            console.log("chatdelete function()");
-            socket.emit('delete saved chat', "");
-          });
-
-          socket.on('chat message', function(msg){
-            $('#viewmessages').append($('<li>').text(msg));
-            if (selfChat) {
-              scroll_bottom();
-              selfChat = false;
-            } else if (document.getElementById("latestchat").checked) {
-              scroll_bottom();
-            }
-          });
-          socket.on("connect_error", err => {
-            console.log("connect_error")
-            console.log(err instanceof Error); // true
-            console.log(err.message); // not authorized
-            console.log(err.data); // { content: "Please retry later" }
-          });
+      $(function () {
+        var socket = io();
+        var selfChat = false; // 雑だが自身のチャットだけスクロールするため。
+        $('#formmessage').submit(function(e) {
+          console.log("formmessage function()")
+          e.preventDefault(); // prevents page reloading
+          socket.emit('chat message', { name: $('#sendname').val(), message: $('#sendmessge').val() });
+          $('#sendmessge').val('');
+          selfChat = true;
+          return false;
+        });
+        document.getElementById("chatdelete").addEventListener("click", () => {
+          console.log("chatdelete function()");
+          socket.emit('delete saved chat', "");
         });
 
-        // local に名称をキャッシュする
-        const name = document.getElementById("sendname");
-        name.addEventListener("change", (event) => {
-          console.log("change: " + event.target.value);
-          localStorage.setItem("name", event.target.value);
+        var count = 0;
+        socket.on('chat message', function(msg){
+          var element = "";
+          if (count % 2 == 0) {
+            element = '<a href="#" class="list-group-item list-group-item-action list-group-item-light">';
+          } else {
+            element = '<a href="#" class="list-group-item list-group-item-action list-group-item-secondary">';
+          }
+          $('#viewmessages').append($(element).text(msg));
+          count++;
+          if (selfChat) {
+            console.log("selfchat")
+            scroll_bottom();
+            selfChat = false;
+          } else if (document.getElementById("latestchat").checked) {
+            console.log("latestchat")
+            scroll_bottom();
+          }
         });
-        if (localStorage.name != null) {
-          console.log("set name:" + localStorage.name);
-          name.value = localStorage.name;
-        }
+        socket.on("connect_error", err => {
+          console.log("connect_error")
+          console.log(err instanceof Error); // true
+          console.log(err.message); // not authorized
+          console.log(err.data); // { content: "Please retry later" }
+        });
+      });
 
-        function scroll_bottom() {
-          console.log("scroll_bottom()");
-          const scroll = document.getElementById("scroll");
-          const bottom = scroll.scrollHeight - scroll.clientHeight;
-          scroll.scroll(0, bottom);
-        }
-      </script>
+      // local に名称をキャッシュする
+      const name = document.getElementById("sendname");
+      name.addEventListener("change", (event) => {
+        console.log("change: " + event.target.value);
+        localStorage.setItem("name", event.target.value);
+      });
+      if (localStorage.name != null) {
+        console.log("set name:" + localStorage.name);
+        name.value = localStorage.name;
+      }
+
+      function scroll_bottom() {
+        console.log("scroll_bottom()");
+        const scroll = document.getElementById("scroll");
+        const bottom = scroll.scrollHeight - scroll.clientHeight;
+        scroll.scroll(0, bottom);
+      }
+    </script>
+    <!-- BootStrap 4.5 -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
   </body>
 </html>
